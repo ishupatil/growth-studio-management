@@ -64,10 +64,10 @@ export function GrowthForm({ onSubmit, isLoading }: GrowthFormProps) {
                             <div
                                 key={idx}
                                 className={`text-sm transition-all duration-500 flex items-center ${idx === step
-                                        ? 'text-accent font-medium scale-105'
-                                        : idx < step
-                                            ? 'text-success opacity-70'
-                                            : 'text-text-secondary opacity-40'
+                                    ? 'text-accent font-medium scale-105'
+                                    : idx < step
+                                        ? 'text-success opacity-70'
+                                        : 'text-text-secondary opacity-40'
                                     }`}
                             >
                                 {idx < step && <span className="mr-2 text-success">✓</span>}
@@ -130,8 +130,8 @@ export function GrowthForm({ onSubmit, isLoading }: GrowthFormProps) {
                     </div>
 
                     <div className="pt-6">
-                        <Button type="submit" className="w-full">
-                            Engage AI Agents <span className="ml-2">→</span>
+                        <Button type="submit" className="w-full" disabled={isLoading}>
+                            {isLoading ? 'Agents at Work...' : 'Engage AI Agents'} <span className="ml-2">→</span>
                         </Button>
                     </div>
                 </form>
