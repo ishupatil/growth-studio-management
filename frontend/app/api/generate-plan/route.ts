@@ -10,10 +10,19 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const backendUrl = process.env.CREWAI_BACKEND_URL
+    let backendUrl = process.env.CREWAI_BACKEND_URL || ''
     const secret = process.env.CREWAI_API_SECRET
 
+    // Normalize URL: remove trailing slash if exists
+    if (backendUrl.endsWith('/')) {
+        backendUrl = backendUrl.slice(0, -1)
+    }
+
     try {
+        if (!backendUrl || backendUrl === 'http://localhost' || backendUrl.includes('localhost')) {
+            throw new Error('CREWAI_BACKEND_URL is not configured correctly in Render environment variables.')
+        }
+
         // Call Flask + CrewAI backend on Render.com
         const response = await fetch(`${backendUrl}/generate-plan`, {
             method: 'POST',
@@ -26,9 +35,18 @@ export async function POST(request: NextRequest) {
             signal: AbortSignal.timeout(180000), // 3 minutes
         })
 
+        const contentType = response.headers.get('content-type')
         if (!response.ok) {
-            const error = await response.json()
-            throw new Error(error.error || 'Backend error')
+            if (contentType && contentType.includes('application/json')) {
+                const error = await response.json()
+                throw new Error(error.error || 'Backend error')
+            } else {
+                throw new Error(`Backend returned non-JSON error (${response.status}). Please check your Render logs for the backend service.`)
+            }
+        }
+
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Backend returned invalid response (Expected JSON, got HTML). This usually means the CREWAI_BACKEND_URL is incorrect.')
         }
 
         const result = await response.json()

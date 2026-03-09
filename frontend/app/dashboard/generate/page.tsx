@@ -23,8 +23,13 @@ export default function GeneratePage() {
             })
 
             if (!res.ok) {
-                const error = await res.json()
-                throw new Error(error.error || 'Failed to generate')
+                const contentType = res.headers.get('content-type')
+                if (contentType && contentType.includes('application/json')) {
+                    const error = await res.json()
+                    throw new Error(error.error || 'Failed to generate')
+                } else {
+                    throw new Error(`Server Error (${res.status}). Please check Render deployment logs.`)
+                }
             }
 
             const result = await res.json()
