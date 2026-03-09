@@ -15,6 +15,7 @@ print(">>> Social Media Growth Backend v1.1 (Security Handshake Fix) is starting
 def home():
     return jsonify({
         "message": "AI Social Media Growth Backend is running!",
+        "version": "1.1.1",
         "health": "/health"
     })
 
