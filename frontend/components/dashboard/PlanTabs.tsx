@@ -36,16 +36,39 @@ export function PlanTabs({ plan, onSave, isSaving = false, hideSave = false }: P
     const formatContent = (text: string) => {
         if (!text) return null
         return text.split('\n').map((line, i) => {
-            if (line.startsWith('## ') || line.startsWith('**') || line.match(/^[A-Z\s]+:/) || line.includes('DAY')) {
-                return <h3 key={i} className="text-accent font-medium mt-4 mb-2">{line.replace(/[*#]/g, '')}</h3>
+            const trimmed = line.trim()
+            if (trimmed === '') return <br key={i} />
+
+            // Headings / Bold sections
+            if (trimmed.startsWith('## ') || trimmed.startsWith('### ') || trimmed.match(/^[A-Z\s]+:/) || trimmed.includes('DAY')) {
+                return (
+                    <h3 key={i} className="text-accent font-display text-lg font-medium mt-6 mb-3 border-b border-accent/20 pb-1">
+                        {trimmed.replace(/[*#]/g, '')}
+                    </h3>
+                )
             }
-            if (line.startsWith('- ') || line.startsWith('• ')) {
-                return <li key={i} className="ml-4 mb-1">{line.substring(2)}</li>
+
+            // List items
+            if (trimmed.startsWith('- ') || trimmed.startsWith('* ') || trimmed.startsWith('• ')) {
+                return (
+                    <li key={i} className="ml-6 mb-2 text-text-secondary list-disc">
+                        <span className="text-text-primary">{trimmed.substring(2).replace(/[*#]/g, '')}</span>
+                    </li>
+                )
             }
-            if (line.trim() === '') {
-                return <br key={i} />
-            }
-            return <p key={i} className="mb-2">{line.replace(/[*#]/g, '')}</p>
+
+            // Regular paragraphs with basic bold support
+            const parts = trimmed.split(/(\*\*.*?\*\*)/g)
+            return (
+                <p key={i} className="mb-3 text-text-secondary leading-relaxed">
+                    {parts.map((part, pi) => {
+                        if (part.startsWith('**') && part.endsWith('**')) {
+                            return <strong key={pi} className="text-text-primary font-medium">{part.replace(/\*\*/g, '')}</strong>
+                        }
+                        return part.replace(/[#]/g, '')
+                    })}
+                </p>
+            )
         })
     }
 
@@ -57,8 +80,8 @@ export function PlanTabs({ plan, onSave, isSaving = false, hideSave = false }: P
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`px-4 py-2 text-sm font-medium rounded-md whitespace-nowrap transition-colors ${activeTab === tab.id
-                                ? 'bg-accent/10 text-accent'
-                                : 'text-text-secondary hover:text-text-primary hover:bg-elevated'
+                            ? 'bg-accent/10 text-accent'
+                            : 'text-text-secondary hover:text-text-primary hover:bg-elevated'
                             }`}
                     >
                         {tab.label}
