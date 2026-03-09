@@ -46,11 +46,8 @@ class InstagramGrowthCrew:
         # ── AGENT 1: Audit Specialist ──────────────────────────
         audit_agent = Agent(
             role="Instagram Audit Specialist",
-            goal="Analyze Instagram account performance and identify growth opportunities",
-            backstory="""You are a data-driven Instagram analytics expert 
-            with deep knowledge of engagement benchmarks, algorithm 
-            behavior, and growth patterns across all content niches. 
-            Your audits are specific, honest, and actionable.""",
+            goal="Analyze performance and identify growth opportunities",
+            backstory="Expert in Instagram analytics and growth patterns.",
             llm=self.llm,
             verbose=False,
             allow_delegation=False,
@@ -58,42 +55,20 @@ class InstagramGrowthCrew:
 
         audit_task = Task(
             description=f"""
-            Audit this Instagram account and produce a structured report.
-
+            Audit this Instagram account and produce a report.
             {account_context}
-
-            Include these exact sections:
-
-            ENGAGEMENT ANALYSIS:
-            Rate {self.engagement_rate}% and classify it.
-            Benchmark against {self.content_type} niche average.
-
-            STRENGTHS (exactly 3 bullet points):
-            Specific to their data above.
-
-            WEAKNESSES (exactly 3 bullet points):
-            Specific to their data above.
-
-            GROWTH OPPORTUNITIES (exactly 3 bullet points):
-            Specific to {self.content_type} and goal: {self.goal}.
-
-            GROWTH PROJECTION:
-            Current timeline to {self.target_followers:,} followers.
-            Optimized timeline with strategy.
-            Top priority fix.
+            Sections: ENGAGEMENT ANALYSIS, STRENGTHS (3 points), WEAKNESSES (3 points), 
+            GROWTH OPPORTUNITIES (3 points), GROWTH PROJECTION.
             """,
             agent=audit_agent,
-            expected_output="Structured audit report with all 5 sections.",
+            expected_output="Structured audit report.",
         )
 
         # ── AGENT 2: Strategy Planner ──────────────────────────
         strategy_agent = Agent(
-            role="Instagram Growth Strategy Planner",
-            goal="Create a data-backed 7-day Instagram growth strategy",
-            backstory="""You are an Instagram growth expert who has 
-            scaled hundreds of accounts. You understand the 2025 
-            algorithm deeply — what content gets pushed, when to post, 
-            and how to build compounding engagement momentum.""",
+            role="Instagram Strategy Planner",
+            goal="Create a 7-day growth strategy",
+            backstory="Expert in Instagram algorithm and engagement momentum.",
             llm=self.llm,
             verbose=False,
             allow_delegation=False,
@@ -101,46 +76,21 @@ class InstagramGrowthCrew:
 
         strategy_task = Task(
             description=f"""
-            Build a 7-day growth strategy for this account.
-
+            Build a 7-day strategy.
             {account_context}
-
-            Cover these sections:
-
-            POSTING SCHEDULE:
-            Day-by-day posting times (EST).
-            Reasoning for each time slot.
-
-            CONTENT MIX:
-            Exact % split: Reels / Carousels / Stories / Static.
-            Justification for each.
-
-            ENGAGEMENT TACTICS:
-            Comment reply strategy and timing.
-            Story engagement loops.
-            Collaboration opportunities for {self.content_type}.
-
-            ALGORITHM TACTICS:
-            3 specific tactics to boost reach for {self.goal}.
-            How to trigger explore page.
-
-            PROFILE OPTIMIZATION:
-            Bio improvements.
-            Highlights strategy.
+            Sections: POSTING SCHEDULE, CONTENT MIX, ENGAGEMENT TACTICS, 
+            ALGORITHM TACTICS, PROFILE OPTIMIZATION.
             """,
             agent=strategy_agent,
-            expected_output="Complete 7-day growth strategy with all sections.",
+            expected_output="Complete 7-day growth strategy.",
             context=[audit_task],
         )
 
-        # ── AGENT 3: Content Creation Expert ──────────────────
+        # ── AGENT 3: Content creation Expert ──────────────────
         content_agent = Agent(
-            role="Instagram Content Creation Expert",
-            goal="Generate a specific and creative 7-day content calendar",
-            backstory="""You are a viral content strategist who has 
-            created content for top creators in every niche. You know 
-            exactly what hooks stop the scroll, what formats drive saves, 
-            and how to structure content that converts viewers to followers.""",
+            role="Instagram Content Expert",
+            goal="Generate a specific 7-day content calendar",
+            backstory="Specialist in viral hooks and content structure.",
             llm=self.llm,
             verbose=False,
             allow_delegation=False,
@@ -148,35 +98,20 @@ class InstagramGrowthCrew:
 
         content_task = Task(
             description=f"""
-            Create a 7-day content calendar for this account.
-
+            Create a 7-day content calendar.
             {account_context}
-
-            For EVERY day from Day 1 to Day 7 include:
-
-            DAY [N]:
-            Post Type: Reel / Carousel / Story / Static
-            Content Idea: Specific idea for {self.content_type}
-            Hook: First line that stops the scroll
-            Outline: 3-4 bullet points (script for Reels, slides for Carousels)
-            Goal: Reach / Engagement / Saves / Follows
-            Post Time: Specific time EST
-
-            Do not skip any day. All 7 days required.
+            For Days 1-7: Post Type, Idea, Hook, Outline, Goal, Time.
             """,
             agent=content_agent,
-            expected_output="Complete 7-day content calendar, all days covered.",
+            expected_output="7-day content calendar.",
             context=[strategy_task],
         )
 
         # ── AGENT 4: Caption & Hashtag Specialist ─────────────
         caption_agent = Agent(
-            role="Instagram Caption and Hashtag Specialist",
-            goal="Write high-converting captions and optimized hashtag sets",
-            backstory="""You are a copywriting expert who specializes 
-            in Instagram captions that drive action. Your hashtag 
-            methodology layers broad, niche, and micro tags to maximize 
-            both reach and relevance for any content type.""",
+            role="Instagram Caption Specialist",
+            goal="Write captions and optimized hashtag sets",
+            backstory="Expert in conversion-driven captions and hashtag layering.",
             llm=self.llm,
             verbose=False,
             allow_delegation=False,
@@ -185,51 +120,22 @@ class InstagramGrowthCrew:
         caption_task = Task(
             description=f"""
             Write captions and hashtags for all 7 days.
-
             {account_context}
-
-            For EVERY day from Day 1 to Day 7 provide:
-
-            DAY [N] CAPTION:
-            Full caption in {self.brand_tone} tone.
-            4-5 lines with emoji.
-            Strong CTA aligned with {self.goal}.
-
-            DAY [N] HASHTAGS:
-            5 broad hashtags (1M+ posts)
-            5 niche hashtags (100K-1M posts)
-            5 micro hashtags (under 100K posts)
-            Total: exactly 15 hashtags per day.
-
-            Do not skip any day. All 7 days required.
+            For Days 1-7: Full caption (brand tone), 15 hashtags (broad/niche/micro).
             """,
             agent=caption_agent,
             expected_output="Captions and 15 hashtags for all 7 days.",
             context=[content_task],
         )
 
-        # ── EXTRA TIPS TASK (same caption agent) ──────────────
+        # ── EXTRA TIPS TASK ───────────────────────────────────
         tips_task = Task(
             description=f"""
-            Based on the full strategy created for @{self.username},
-            provide 5 advanced growth tips.
-
-            Account has {self.followers:,} followers in {self.content_type}.
-            Goal: {self.goal}
-            Target: {self.target_followers:,} followers
-
-            Format:
-            TIP 1: [Title]
-            [2-3 specific sentences. Reference their exact situation.]
-
-            TIP 2: [Title]
-            [2-3 specific sentences.]
-
-            Continue for all 5 tips.
-            No generic advice. Everything must be niche-specific.
+            Provide 5 advanced growth tips for @{self.username}.
+            Goal: {self.goal}. Target: {self.target_followers}.
             """,
             agent=caption_agent,
-            expected_output="5 advanced, account-specific growth tips.",
+            expected_output="5 growth tips.",
             context=[strategy_task, content_task],
         )
 
@@ -240,15 +146,15 @@ class InstagramGrowthCrew:
             process=Process.sequential,
             verbose=False,
             memory=False,
-            embedder={
-                "provider": "google",
-                "config": {"model": "models/embedding-001"}
-            } if False else None # Ensure we don't trigger heavy local embeddings
+            planning=False, # Disable new resource-heavy planning feature
         )
 
         result = crew.kickoff()
+        
+        # Explicitly clean up to free memory
+        import gc
+        gc.collect()
 
-        # Extract outputs from each task
         return {
             "audit_report": str(audit_task.output.raw) if audit_task.output else "",
             "growth_strategy": str(strategy_task.output.raw) if strategy_task.output else "",
