@@ -1,7 +1,11 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-from crew import InstagramGrowthCrew
 import os
+import gc
+
+# Disable heavy telemetry
+os.environ["OTEL_SDK_DISABLED"] = "true"
+os.environ["CREWAI_TELEMETRY_OPT_OUT"] = "true"
+
+from flask import Flask, request, jsonify
 import psutil
 from dotenv import load_dotenv
 

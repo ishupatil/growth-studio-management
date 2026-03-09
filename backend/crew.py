@@ -1,6 +1,11 @@
-from crewai import Agent, Task, Crew, Process
-from langchain_groq import ChatGroq
 import os
+import gc
+
+# Disable heavy telemetry before importing crewai
+os.environ["OTEL_SDK_DISABLED"] = "true"
+os.environ["CREWAI_TELEMETRY_OPT_OUT"] = "true"
+
+from crewai import Agent, Task, Crew, Process
 
 class InstagramGrowthCrew:
     def __init__(
@@ -43,110 +48,71 @@ class InstagramGrowthCrew:
         Target Followers: {self.target_followers:,}
         """
 
-        # ── AGENT 1: Audit Specialist ──────────────────────────
-        audit_agent = Agent(
-            role="Instagram Audit Specialist",
-            goal="Analyze performance and identify growth opportunities",
-            backstory="Expert in Instagram analytics and growth patterns.",
+        # ── AGENT 1: Growth Strategist (Audit + Strategy) ─────
+        strategist = Agent(
+            role="Growth Strategist",
+            goal="Audit account and create a 7-day strategy",
+            backstory="Expert in Instagram analytics and algorithm growth.",
             llm=self.llm,
             verbose=False,
             allow_delegation=False,
         )
 
         audit_task = Task(
-            description=f"""
-            Audit this Instagram account and produce a report.
-            {account_context}
-            Sections: ENGAGEMENT ANALYSIS, STRENGTHS (3 points), WEAKNESSES (3 points), 
-            GROWTH OPPORTUNITIES (3 points), GROWTH PROJECTION.
-            """,
-            agent=audit_agent,
-            expected_output="Structured audit report.",
-        )
-
-        # ── AGENT 2: Strategy Planner ──────────────────────────
-        strategy_agent = Agent(
-            role="Instagram Strategy Planner",
-            goal="Create a 7-day growth strategy",
-            backstory="Expert in Instagram algorithm and engagement momentum.",
-            llm=self.llm,
-            verbose=False,
-            allow_delegation=False,
+            description=f"Audit this account: {account_context}. Sections: Engagement, Strengths, Weaknesses, Projection.",
+            agent=strategist,
+            expected_output="Audit report.",
         )
 
         strategy_task = Task(
-            description=f"""
-            Build a 7-day strategy.
-            {account_context}
-            Sections: POSTING SCHEDULE, CONTENT MIX, ENGAGEMENT TACTICS, 
-            ALGORITHM TACTICS, PROFILE OPTIMIZATION.
-            """,
-            agent=strategy_agent,
-            expected_output="Complete 7-day growth strategy.",
+            description=f"Build a 7-day strategy for: {account_context}. Sections: Schedule, Mix, Engagement Tactics.",
+            agent=strategist,
+            expected_output="7-day strategy.",
             context=[audit_task],
         )
 
-        # ── AGENT 3: Content creation Expert ──────────────────
-        content_agent = Agent(
-            role="Instagram Content Expert",
-            goal="Generate a specific 7-day content calendar",
-            backstory="Specialist in viral hooks and content structure.",
+        # ── AGENT 2: Creative Director (Content + Captions) ───
+        creative = Agent(
+            role="Creative Director",
+            goal="Generate content and captions for 7 days",
+            backstory="Expert in viral hooks, content structure, and captions.",
             llm=self.llm,
             verbose=False,
             allow_delegation=False,
         )
 
         content_task = Task(
-            description=f"""
-            Create a 7-day content calendar.
-            {account_context}
-            For Days 1-7: Post Type, Idea, Hook, Outline, Goal, Time.
-            """,
-            agent=content_agent,
+            description=f"Create a 7-day calendar for: {account_context}. Include hooks and outlines.",
+            agent=creative,
             expected_output="7-day content calendar.",
             context=[strategy_task],
         )
 
-        # ── AGENT 4: Caption & Hashtag Specialist ─────────────
-        caption_agent = Agent(
-            role="Instagram Caption Specialist",
-            goal="Write captions and optimized hashtag sets",
-            backstory="Expert in conversion-driven captions and hashtag layering.",
-            llm=self.llm,
-            verbose=False,
-            allow_delegation=False,
-        )
-
         caption_task = Task(
-            description=f"""
-            Write captions and hashtags for all 7 days.
-            {account_context}
-            For Days 1-7: Full caption (brand tone), 15 hashtags (broad/niche/micro).
-            """,
-            agent=caption_agent,
-            expected_output="Captions and 15 hashtags for all 7 days.",
+            description=f"Write captions and 15 hashtags for all 7 days for: {account_context}.",
+            agent=creative,
+            expected_output="Captions and hashtags.",
             context=[content_task],
         )
 
-        # ── EXTRA TIPS TASK ───────────────────────────────────
         tips_task = Task(
-            description=f"""
-            Provide 5 advanced growth tips for @{self.username}.
-            Goal: {self.goal}. Target: {self.target_followers}.
-            """,
-            agent=caption_agent,
+            description=f"Provide 5 advanced tips for {self.username}. Goal: {self.goal}.",
+            agent=creative,
             expected_output="5 growth tips.",
             context=[strategy_task, content_task],
         )
 
+        # Force GC before starting heavy crew
+        gc.collect()
+
         # ── BUILD AND RUN CREW ────────────────────────────────
         crew = Crew(
-            agents=[audit_agent, strategy_agent, content_agent, caption_agent],
+            agents=[strategist, creative],
             tasks=[audit_task, strategy_task, content_task, caption_task, tips_task],
             process=Process.sequential,
             verbose=False,
             memory=False,
-            planning=False, # Disable new resource-heavy planning feature
+            planning=False,
         )
 
         result = crew.kickoff()
