@@ -9,6 +9,8 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app, origins="*")
 
+print(">>> Social Media Growth Backend v1.1 (Security Handshake Fix) is starting... <<<")
+
 @app.route("/", methods=["GET"])
 def home():
     return jsonify({
