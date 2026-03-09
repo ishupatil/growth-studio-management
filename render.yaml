@@ -1,0 +1,35 @@
+services:
+
+  # Service 1: Flask + CrewAI Backend
+  - type: web
+    name: growthteam-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --timeout 120 --workers 1
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: API_SECRET_KEY
+        sync: false
+    plan: free
+
+  # Service 2: Next.js Frontend
+  - type: web
+    name: growthteam-frontend
+    runtime: node
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: CREWAI_BACKEND_URL
+        value: https://growthteam-backend.onrender.com
+      - key: CREWAI_API_SECRET
+        sync: false
+    plan: free

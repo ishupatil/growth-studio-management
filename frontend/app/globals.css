@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: theme('colors.background');
+  color: theme('colors.text-primary');
+  font-family: theme('fontFamily.body');
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: theme('fontFamily.display');
+}
+
+code, pre {
+  font-family: theme('fontFamily.mono');
+}
+
+/* Base custom utilities */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
