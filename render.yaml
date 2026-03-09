@@ -21,11 +21,13 @@ services:
     name: growthteam-frontend
     runtime: node
     rootDir: frontend
-    buildCommand: npm install && npm run build
+    buildCommand: npm ci && npm run build
     startCommand: npm start
     envVars:
       - key: NODE_VERSION
         value: 20.x
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=450
       - key: NEXT_PUBLIC_SUPABASE_URL
         sync: false
       - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
