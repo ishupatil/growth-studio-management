@@ -24,6 +24,8 @@ services:
     buildCommand: npm install && npm run build
     startCommand: npm start
     envVars:
+      - key: NODE_VERSION
+        value: 20.x
       - key: NEXT_PUBLIC_SUPABASE_URL
         sync: false
       - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -31,7 +33,7 @@ services:
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
       - key: CREWAI_BACKEND_URL
-        value: https://growthteam-backend.onrender.com
+        sync: false
       - key: CREWAI_API_SECRET
         sync: false
     plan: free
