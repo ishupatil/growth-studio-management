@@ -17,9 +17,17 @@ def home():
     })
 
 def verify_secret(req):
-    secret = req.headers.get("X-Api-Secret", "")
-    expected = os.getenv("API_SECRET_KEY", "")
-    if expected and secret != expected:
+    received = (req.headers.get("X-Api-Secret", "") or "").strip()
+    expected = (os.getenv("API_SECRET_KEY", "") or "").strip()
+    
+    # Masked logging for Render debugging
+    if expected:
+        received_masked = f"{received[:3]}...{received[-3:]}" if len(received) > 6 else "***"
+        expected_masked = f"{expected[:3]}...{expected[-3:]}" if len(expected) > 6 else "***"
+        print(f"Auth Debug: Received [{received_masked}], Expected [{expected_masked}]")
+        print(f"Auth Debug: Length Match: {len(received) == len(expected)}")
+        
+    if expected and received != expected:
         return False
     return True
 
