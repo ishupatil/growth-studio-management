@@ -239,6 +239,11 @@ class InstagramGrowthCrew:
             tasks=[audit_task, strategy_task, content_task, caption_task, tips_task],
             process=Process.sequential,
             verbose=False,
+            memory=False,
+            embedder={
+                "provider": "google",
+                "config": {"model": "models/embedding-001"}
+            } if False else None # Ensure we don't trigger heavy local embeddings
         )
 
         result = crew.kickoff()
