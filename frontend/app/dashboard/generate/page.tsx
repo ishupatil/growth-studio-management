@@ -26,7 +26,8 @@ export default function GeneratePage() {
                 const contentType = res.headers.get('content-type')
                 if (contentType && contentType.includes('application/json')) {
                     const error = await res.json()
-                    throw new Error(error.error || 'Failed to generate')
+                    const message = error.details ? `${error.error}: ${error.details}` : (error.error || 'Failed to generate')
+                    throw new Error(message)
                 } else {
                     const text = await res.text()
                     throw new Error(`Server Error (${res.status}): ${text.substring(0, 100)}...`)
