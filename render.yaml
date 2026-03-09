@@ -5,9 +5,11 @@ services:
     name: growthteam-backend
     runtime: python
     rootDir: backend
-    buildCommand: pip install -r requirements.txt
+    buildCommand: python -m pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
     startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --timeout 120 --workers 1
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.13
       - key: GROQ_API_KEY
         sync: false
       - key: API_SECRET_KEY
