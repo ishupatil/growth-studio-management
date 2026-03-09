@@ -28,8 +28,15 @@ export default function GeneratePage() {
                     const error = await res.json()
                     throw new Error(error.error || 'Failed to generate')
                 } else {
-                    throw new Error(`Server Error (${res.status}). Please check Render deployment logs.`)
+                    const text = await res.text()
+                    throw new Error(`Server Error (${res.status}): ${text.substring(0, 100)}...`)
                 }
+            }
+
+            const contentType = res.headers.get('content-type')
+            if (!contentType || !contentType.includes('application/json')) {
+                const text = await res.text()
+                throw new Error(`Expected JSON but got HTML: ${text.substring(0, 100)}...`)
             }
 
             const result = await res.json()
