@@ -9,6 +9,13 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app, origins="*")
 
+@app.route("/", methods=["GET"])
+def home():
+    return jsonify({
+        "message": "AI Social Media Growth Backend is running!",
+        "health": "/health"
+    })
+
 def verify_secret(req):
     secret = req.headers.get("X-Api-Secret", "")
     expected = os.getenv("API_SECRET_KEY", "")

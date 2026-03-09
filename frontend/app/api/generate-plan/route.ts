@@ -23,17 +23,19 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    let backendUrl = process.env.CREWAI_BACKEND_URL || ''
-    const secret = process.env.CREWAI_API_SECRET
+    let backendUrl = (process.env.CREWAI_BACKEND_URL || '').trim()
+    const secret = (process.env.CREWAI_API_SECRET || '').trim()
 
-    // Normalize URL: remove trailing slash if exists
-    if (backendUrl.endsWith('/')) {
-        backendUrl = backendUrl.slice(0, -1)
-    }
+    // Robust URL normalization
+    if (backendUrl.endsWith('/')) backendUrl = backendUrl.slice(0, -1)
+    if (backendUrl.endsWith('/generate-plan')) backendUrl = backendUrl.slice(0, -14)
 
     try {
-        if (!backendUrl || backendUrl === 'http://localhost' || backendUrl.includes('localhost')) {
-            throw new Error('CREWAI_BACKEND_URL is not configured correctly in Render environment variables.')
+        if (!backendUrl) {
+            throw new Error('CREWAI_BACKEND_URL is missing in Render environment variables.')
+        }
+        if (!secret) {
+            console.warn('Warning: CREWAI_API_SECRET is not set. Requests may be rejected by backend.')
         }
 
         // Call Flask + CrewAI backend on Render.com
