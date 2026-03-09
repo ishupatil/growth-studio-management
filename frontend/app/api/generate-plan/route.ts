@@ -52,12 +52,21 @@ export async function POST(request: NextRequest) {
 
         const contentType = response.headers.get('content-type')
         if (!response.ok) {
+            let errorMessage = `Backend error (${response.status})`
+
             if (contentType && contentType.includes('application/json')) {
-                const error = await response.json()
-                throw new Error(error.error || 'Backend error')
+                const errorData = await response.json()
+                errorMessage = errorData.error || errorMessage
+
+                if (response.status === 401) {
+                    errorMessage = `Backend rejected request: ${errorMessage}. Please check that CREWAI_API_SECRET on Frontend matches API_SECRET_KEY on Backend in Render.`
+                }
             } else {
-                throw new Error(`Backend returned non-JSON error (${response.status}). Please check your Render logs for the backend service.`)
+                const text = await response.text()
+                console.error('Backend non-JSON response:', text.substring(0, 200))
+                errorMessage = `Backend returned non-JSON error. This often means the URL is wrong or the service is down.`
             }
+            throw new Error(errorMessage)
         }
 
         if (!contentType || !contentType.includes('application/json')) {

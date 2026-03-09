@@ -34,7 +34,7 @@ def health():
 @app.route("/generate-plan", methods=["POST"])
 def generate_plan():
     if not verify_secret(request):
-        return jsonify({"error": "Unauthorized"}), 401
+        return jsonify({"error": "Invalid Backend API Secret"}), 401
 
     data = request.get_json()
     if not data:

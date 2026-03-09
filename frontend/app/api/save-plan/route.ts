@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     if (authError || !user) {
         console.error('Auth check failed:', authError?.message || 'No user session found')
         return NextResponse.json({
-            error: 'Unauthorized',
+            error: 'User Authentication Failed',
             details: authError?.message || 'Please log out and log back in to refresh your session.'
         }, { status: 401 })
     }
