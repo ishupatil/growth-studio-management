@@ -63,8 +63,9 @@ export async function POST(request: NextRequest) {
                 }
             } else {
                 const text = await response.text()
-                console.error('Backend non-JSON response:', text.substring(0, 200))
-                errorMessage = `Backend returned non-JSON error. This often means the URL is wrong or the service is down.`
+                const snippet = text.substring(0, 150)
+                console.error(`Backend non-JSON response (${response.status}):`, snippet)
+                errorMessage = `Backend returned non-JSON error (${response.status}). Details: ${snippet}...`
             }
             throw new Error(errorMessage)
         }

@@ -41,6 +41,7 @@ def health():
 
 @app.route("/generate-plan", methods=["POST"])
 def generate_plan():
+    print(f"DEBUG: Received request to /generate-plan from {request.remote_addr}")
     if not verify_secret(request):
         return jsonify({"error": "Invalid Backend API Secret"}), 401
 
