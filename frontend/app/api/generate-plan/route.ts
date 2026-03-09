@@ -44,8 +44,8 @@ export async function POST(request: NextRequest) {
                 'X-Api-Secret': secret || '',
             },
             body: JSON.stringify(body),
-            // Long timeout — CrewAI takes time
-            signal: AbortSignal.timeout(180000), // 3 minutes
+            // Long timeout — CrewAI takes time (Increased to 5 mins for Render free tier)
+            signal: AbortSignal.timeout(300000),
         })
 
         const contentType = response.headers.get('content-type')
