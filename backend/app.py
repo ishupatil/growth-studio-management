@@ -2,9 +2,15 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from crew import InstagramGrowthCrew
 import os
+import psutil
 from dotenv import load_dotenv
 
 load_dotenv()
+
+def log_memory(stage):
+    process = psutil.Process(os.getpid())
+    mem_mb = process.memory_info().rss / (1024 * 1024)
+    print(f"RAM CHECK [{stage}]: {mem_mb:.2f} MB")
 
 app = Flask(__name__)
 CORS(app, origins="*")
@@ -44,6 +50,7 @@ def health():
 
 @app.route("/generate-plan", methods=["POST"])
 def generate_plan():
+    log_memory("Request Entry")
     print(f"DEBUG: Received request to /generate-plan from {request.remote_addr}")
     if not verify_secret(request):
         return jsonify({"error": "Invalid Backend API Secret"}), 401
@@ -73,7 +80,9 @@ def generate_plan():
             goal=data["goal"],
             target_followers=int(data["target_followers"]),
         )
+        log_memory("Crew Initialized")
         result = crew.run()
+        log_memory("Crew Run Finished")
         return jsonify({"success": True, "data": result})
 
     except Exception as e:
