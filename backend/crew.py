@@ -36,6 +36,9 @@ class InstagramGrowthCrew:
         )
 
     def run(self):
+        # Force GC at start
+        gc.collect()
+
         account_context = f"""
         Instagram Account: @{self.username}
         Followers: {self.followers:,}
@@ -49,48 +52,37 @@ class InstagramGrowthCrew:
         Target Followers: {self.target_followers:,}
         """
 
-        # ── AGENT 1: Growth Strategist ────────────────────────
-        strategist = Agent(
-            role="Growth Strategist",
-            goal="Perform a quick audit and create a 7-day strategy",
-            backstory="Expert in Instagram analytics and algorithm growth. Known for being extremely concise and data-driven.",
+        # ── THE OMNI-AGENT: Growth Maestro ───────────────────
+        maestro = Agent(
+            role="Growth Maestro",
+            goal="Provide a complete growth audit, strategy, and 7-day content plan in one pass",
+            backstory="The world's most efficient social media architect. Expert in high-impact growth and viral content.",
             llm=self.llm,
             verbose=True,
             allow_delegation=False,
         )
 
-        # Consolidated Audit + Strategy
-        strategy_task = Task(
-            description=f"Audit this account AND build a 7-day strategy: {account_context}. Keep it concise. Focus on: Engagement audit, Projection, and a 7-day Schedule.",
-            agent=strategist,
-            expected_output="A concise combined report containing a profile audit and a 7-day growth strategy.",
+        # THE SINGLE OMNI-TASK
+        omni_task = Task(
+            description=f"""
+            Perform a complete growth service for: {account_context}.
+            
+            YOU MUST PROVIDE ALL 4 SECTIONS IN ONE RESPONSE:
+            1. AUDIT: Brief engagement analysis and projection.
+            2. STRATEGY: High-level 7-day growth tactics.
+            3. CONTENT CALENDAR: A 7-day daily schedule with specific hooks.
+            4. CAPTIONS & TIPS: Short captions for all 7 days, 5 hashtags/day, and 3 advanced tips.
+            
+            Keep the total response concise, professional, and data-driven.
+            """,
+            agent=maestro,
+            expected_output="A complete, well-structured growth package including Audit, Strategy, 7-day Content Calendar, Captions, and Tips.",
         )
 
-        # ── AGENT 2: Creative Director ────────────────────────
-        creative = Agent(
-            role="Creative Director",
-            goal="Generate content, captions, and growth tips",
-            backstory="Expert in viral hooks and content structure. Master of brevity.",
-            llm=self.llm,
-            verbose=True,
-            allow_delegation=False,
-        )
-
-        # Consolidated Content + Captions + Tips (The "Final Package")
-        final_package_task = Task(
-            description=f"Create a 7-day calendar with captions and 5 targeted hashtags for: {account_context}. Also include 3 advanced growth tips. BASE THIS ON THE STRATEGY: {{strategy_task.output}}",
-            agent=creative,
-            expected_output="7-day content calendar including captions, 5 hashtags per day, and 3 growth tips.",
-            context=[strategy_task],
-        )
-
-        # Force GC before starting heavy crew
-        gc.collect()
-
-        # ── BUILD AND RUN CREW ────────────────────────────────
+        # ── BUILD AND RUN OMNI-CREW ──────────────────────────
         crew = Crew(
-            agents=[strategist, creative],
-            tasks=[strategy_task, final_package_task],
+            agents=[maestro],
+            tasks=[omni_task],
             process=Process.sequential,
             verbose=True,
             memory=False,
@@ -99,17 +91,16 @@ class InstagramGrowthCrew:
 
         result = crew.kickoff()
         
-        # Explicitly clean up to free memory
+        # Final GC
         gc.collect()
 
-        # Parse the result back into the expected frontend format
-        # Since we consolidated, we'll map the outputs back
-        full_output = str(result.raw) if result else ""
+        # Map everything to ensure frontend compatibility
+        output_text = str(result.raw) if result else "Generation failed."
         
         return {
-            "audit_report": str(strategy_task.output.raw) if strategy_task.output else "Audit/Strategy combined above.",
-            "growth_strategy": str(strategy_task.output.raw) if strategy_task.output else "",
-            "content_calendar": str(final_package_task.output.raw) if final_package_task.output else "",
-            "captions_hashtags": "Included in Content Calendar above.",
-            "extra_tips": "Included in Content Calendar above.",
+            "audit_report": output_text, # Returning full text to all for safety
+            "growth_strategy": "See full report above.",
+            "content_calendar": "See full report above.",
+            "captions_hashtags": "See full report above.",
+            "extra_tips": "See full report above.",
         }

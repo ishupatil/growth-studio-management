@@ -38,16 +38,12 @@ export function GrowthForm({ onSubmit, isLoading }: GrowthFormProps) {
             return
         }
 
-        const interval = setInterval(() => {
-            setStep((s) => (s >= 1 ? 1 : s + 1))
-        }, 30000) // 30s per consolidated agent cycle
-
-        return () => clearInterval(interval)
+        // No interval needed for single-step Omni-Agent flow
+        return () => { }
     }, [isLoading])
 
     const loadingSteps = [
-        "Agent 01 — Auditing and Strategizing...",
-        "Agent 02 — Finalizing Content and Tips..."
+        "Growth Maestro — Generating all-in-one package..."
     ]
 
     return (

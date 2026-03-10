@@ -75,6 +75,7 @@ def generate_plan():
             return jsonify({"error": f"Missing field: {field}"}), 400
 
     try:
+        log_memory("Before Crew Setup")
         crew = InstagramGrowthCrew(
             username=data["username"],
             followers=int(data["followers"]),
@@ -87,8 +88,19 @@ def generate_plan():
             target_followers=int(data["target_followers"]),
         )
         log_memory("Crew Initialized")
+        
+        # Aggressive GC
+        gc.collect()
+        log_memory("Post-GC")
+
         result = crew.run()
         log_memory("Crew Run Finished")
+        
+        # Cleanup
+        del crew
+        gc.collect()
+        log_memory("Post-Run Cleanup")
+        
         return jsonify({"success": True, "data": result})
 
     except Exception as e:
