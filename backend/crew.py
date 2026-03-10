@@ -6,6 +6,7 @@ os.environ["OTEL_SDK_DISABLED"] = "true"
 os.environ["CREWAI_TELEMETRY_OPT_OUT"] = "true"
 
 from crewai import Agent, Task, Crew, Process
+from langchain_groq import ChatGroq
 
 class InstagramGrowthCrew:
     def __init__(

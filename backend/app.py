@@ -6,8 +6,10 @@ os.environ["OTEL_SDK_DISABLED"] = "true"
 os.environ["CREWAI_TELEMETRY_OPT_OUT"] = "true"
 
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import psutil
 from dotenv import load_dotenv
+from crew import InstagramGrowthCrew
 
 load_dotenv()
 
