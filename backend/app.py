@@ -104,7 +104,10 @@ def generate_plan():
         return jsonify({"success": True, "data": result})
 
     except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+        print(f"CRITICAL BACKEND ERROR: {str(e)}")
+        # Log available memory as last diagnostic
+        log_memory("Failure Cleanup")
+        return jsonify({"success": False, "error": f"AI Engine Exception: {str(e)}"}), 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
