@@ -1,12 +1,6 @@
 import os
 import gc
-
-# Disable heavy telemetry before importing crewai
-os.environ["OTEL_SDK_DISABLED"] = "true"
-os.environ["CREWAI_TELEMETRY_OPT_OUT"] = "true"
-
-from crewai import Agent, Task, Crew, Process
-from langchain_groq import ChatGroq
+from groq import Groq
 
 class InstagramGrowthCrew:
     def __init__(
@@ -28,12 +22,10 @@ class InstagramGrowthCrew:
             ((avg_likes + avg_comments) / max(followers, 1)) * 100, 2
         )
 
-        self.llm = ChatGroq(
-            api_key=os.getenv("GROQ_API_KEY"),
-            model="llama-3.1-8b-instant",
-            temperature=0.7,
-            max_tokens=1500,
-        )
+        # Initialize native Groq client (Zero overhead compared to LangChain/CrewAI)
+        self.client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+        self.model = "llama-3.1-8b-instant"
+
 
     def run(self):
         # Extreme Memory Protection: Force GC at very start
@@ -64,10 +56,24 @@ class InstagramGrowthCrew:
         """
 
         try:
-            # Direct LLM call — Bypassing heavy CrewAI execution engine to save ~200MB RAM
-            print(">>> Calling Groq LLM directly (Lite Mode)...")
-            response = self.llm.invoke(prompt)
-            output_text = str(response.content)
+            # Direct API call via native Groq client for absolute minimum memory usage
+            print(">>> Calling native Groq API (Ultra-Lite Mode)...")
+            response = self.client.chat.completions.create(
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are an elite, concise Social Media Architect. Provide exact, structured growth plans without fluff."
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
+                model=self.model,
+                temperature=0.7,
+                max_tokens=1500,
+            )
+            output_text = response.choices[0].message.content
             
             # Post-call GC
             gc.collect()
