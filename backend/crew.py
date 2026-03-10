@@ -49,58 +49,39 @@ class InstagramGrowthCrew:
         Target Followers: {self.target_followers:,}
         """
 
-        # ── AGENT 1: Growth Strategist (Audit + Strategy) ─────
+        # ── AGENT 1: Growth Strategist ────────────────────────
         strategist = Agent(
             role="Growth Strategist",
-            goal="Audit account and create a 7-day strategy",
-            backstory="Expert in Instagram analytics and algorithm growth.",
+            goal="Perform a quick audit and create a 7-day strategy",
+            backstory="Expert in Instagram analytics and algorithm growth. Known for being extremely concise and data-driven.",
             llm=self.llm,
-            verbose=False,
+            verbose=True,
             allow_delegation=False,
         )
 
-        audit_task = Task(
-            description=f"Audit this account: {account_context}. Sections: Engagement, Strengths, Weaknesses, Projection.",
-            agent=strategist,
-            expected_output="Audit report.",
-        )
-
+        # Consolidated Audit + Strategy
         strategy_task = Task(
-            description=f"Build a 7-day strategy for: {account_context}. Sections: Schedule, Mix, Engagement Tactics.",
+            description=f"Audit this account AND build a 7-day strategy: {account_context}. Keep it concise. Focus on: Engagement audit, Projection, and a 7-day Schedule.",
             agent=strategist,
-            expected_output="7-day strategy.",
-            context=[audit_task],
+            expected_output="A concise combined report containing a profile audit and a 7-day growth strategy.",
         )
 
-        # ── AGENT 2: Creative Director (Content + Captions) ───
+        # ── AGENT 2: Creative Director ────────────────────────
         creative = Agent(
             role="Creative Director",
-            goal="Generate content and captions for 7 days",
-            backstory="Expert in viral hooks, content structure, and captions.",
+            goal="Generate content, captions, and growth tips",
+            backstory="Expert in viral hooks and content structure. Master of brevity.",
             llm=self.llm,
-            verbose=False,
+            verbose=True,
             allow_delegation=False,
         )
 
-        content_task = Task(
-            description=f"Create a 7-day calendar for: {account_context}. Include hooks and outlines.",
+        # Consolidated Content + Captions + Tips (The "Final Package")
+        final_package_task = Task(
+            description=f"Create a 7-day calendar with captions and 5 targeted hashtags for: {account_context}. Also include 3 advanced growth tips. BASE THIS ON THE STRATEGY: {{strategy_task.output}}",
             agent=creative,
-            expected_output="7-day content calendar.",
+            expected_output="7-day content calendar including captions, 5 hashtags per day, and 3 growth tips.",
             context=[strategy_task],
-        )
-
-        caption_task = Task(
-            description=f"Write captions and 15 hashtags for all 7 days for: {account_context}.",
-            agent=creative,
-            expected_output="Captions and hashtags.",
-            context=[content_task],
-        )
-
-        tips_task = Task(
-            description=f"Provide 5 advanced tips for {self.username}. Goal: {self.goal}.",
-            agent=creative,
-            expected_output="5 growth tips.",
-            context=[strategy_task, content_task],
         )
 
         # Force GC before starting heavy crew
@@ -109,9 +90,9 @@ class InstagramGrowthCrew:
         # ── BUILD AND RUN CREW ────────────────────────────────
         crew = Crew(
             agents=[strategist, creative],
-            tasks=[audit_task, strategy_task, content_task, caption_task, tips_task],
+            tasks=[strategy_task, final_package_task],
             process=Process.sequential,
-            verbose=False,
+            verbose=True,
             memory=False,
             planning=False,
         )
@@ -119,13 +100,16 @@ class InstagramGrowthCrew:
         result = crew.kickoff()
         
         # Explicitly clean up to free memory
-        import gc
         gc.collect()
 
+        # Parse the result back into the expected frontend format
+        # Since we consolidated, we'll map the outputs back
+        full_output = str(result.raw) if result else ""
+        
         return {
-            "audit_report": str(audit_task.output.raw) if audit_task.output else "",
+            "audit_report": str(strategy_task.output.raw) if strategy_task.output else "Audit/Strategy combined above.",
             "growth_strategy": str(strategy_task.output.raw) if strategy_task.output else "",
-            "content_calendar": str(content_task.output.raw) if content_task.output else "",
-            "captions_hashtags": str(caption_task.output.raw) if caption_task.output else "",
-            "extra_tips": str(tips_task.output.raw) if tips_task.output else "",
+            "content_calendar": str(final_package_task.output.raw) if final_package_task.output else "",
+            "captions_hashtags": "Included in Content Calendar above.",
+            "extra_tips": "Included in Content Calendar above.",
         }

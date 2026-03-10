@@ -39,17 +39,15 @@ export function GrowthForm({ onSubmit, isLoading }: GrowthFormProps) {
         }
 
         const interval = setInterval(() => {
-            setStep((s) => (s >= 3 ? 3 : s + 1))
-        }, 15000) // Move step every 15s since CrewAI takes ~1m total
+            setStep((s) => (s >= 1 ? 1 : s + 1))
+        }, 30000) // 30s per consolidated agent cycle
 
         return () => clearInterval(interval)
     }, [isLoading])
 
     const loadingSteps = [
-        "Agent 01 — Auditing your account...",
-        "Agent 02 — Building strategy...",
-        "Agent 03 — Creating content calendar...",
-        "Agent 04 — Writing captions..."
+        "Agent 01 — Auditing and Strategizing...",
+        "Agent 02 — Finalizing Content and Tips..."
     ]
 
     return (
